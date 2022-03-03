@@ -1,0 +1,83 @@
+server:
+  port: 9100 #80为默认端口号 可不写
+
+spring:
+  application:
+    name: gateway
+
+
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: true
+          lower-case-service-id: true  # 允许使用小写名称调用eureka的服务
+
+      routes:
+
+        - id: one
+          uri: lb://springcloud-provider-dept-8001   #使用lb://serviceId 启用服务发现 不能使用下划线 不用lb直接使用网址也可以
+          #将/dept/get/1后面的请求转发到uri后面
+          predicates:
+            - Path=/dept/get/1
+          filters:
+            - name: TestRules  #使用小写，gateway会在spring中寻找对应的bean
+              args:
+                name: 李华
+                age: 28
+
+        - id: consuerTest
+          #lb表示负载均衡
+          uri: lb://springcloud-provider-dept-8001
+          #将/dept/get/1转发到uri后面
+          predicates:
+            - Path=/consumer/**
+          filters:
+#           正则表达式   将Path中的/consumer/后面的**作为{segment}转发到uri后面
+            - RewritePath=/consumer/(?<segment>.*), /$\{segment}
+#            - StripPrefix=1
+
+
+
+
+
+
+
+#      - id: consuerTest
+#          #lb表示负载均衡
+#          uri: lb://springcloud-provider-dept-8001
+#          #将/dept/get/1转发到uri后面
+#          predicates:
+#            - Path=/consumer/dept/get/2
+#          filters:
+##            - SetPath=/{segment}
+#            - StripPrefix=1
+
+#        # 令牌桶限流测试
+#        - id: two
+#          #lb表示负载均衡
+#          uri: lb://springcloud-provider-dept-8001
+#          #将/dept/get/1后面的请求转发到uri后面
+#          predicates:
+#            - Path=/dept/get/**
+#          filters:
+#            - name: RequestRateLimiter
+#              args:
+#                # 使用的限流算法类 使用''包裹是防止里面的特殊字符无法识别到
+#                # key-resolver：用于限流的键的解析器的 Bean 对象的名字。它使用 SpEL 表达式根据#{@beanName}从 Spring 容器中获取 Bean 对象。
+#                key-resolver: '#{@limiterTest}'
+#                redis-rate-limiter.replenishRate: 1  # 每秒新增的临牌数量
+#                redis-rate-limiter.burstCapacity: 3  # 令牌桶容量
+
+  redis:  #使用限流filter,配置redis
+    host: 192.168.85.128
+    port: 6379
+
+#eureka配置
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:7001/eureka,http://localhost:7003/eureka #集群模式下需要保证所有的注册中心都已经开启 否则会出现错误
+  instance:
+    instance-id: Gateway   #自定义eureka控制页面中该服务的Status栏提供的超链接显示名称
+    prefer-ip-address: true  #在eureka服务提供页面 查看instance-id时使用ip地址替换网址 在公司联调时较有用
