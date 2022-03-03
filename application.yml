@@ -1,6 +1,6 @@
 spring:
   profiles:
-    active:
+    active: dev #当前激活的是dev配置文件
 
 ---
 
