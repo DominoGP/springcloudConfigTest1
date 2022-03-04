@@ -1,0 +1,32 @@
+spring:
+  profiles:
+    active: dev #当前激活的是dev配置文件
+
+---
+
+server:
+  port: 8201
+spring:
+  profiles: dev
+  application:
+    name: springcloud-provider-DDDD
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://127.0.0.1:7001/eureka/
+
+
+---
+
+server:
+  port: 8201
+spring:
+  profiles: dev2
+  application:
+    name: springcloud-provider-EEEE
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://127.0.0.1:7003/eureka/
